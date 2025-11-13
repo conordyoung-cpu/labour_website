@@ -209,27 +209,27 @@
   <!-- Google Translate loader -->
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-  <!-- Firebase CDN ESM imports exposed on window for modules -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import {
-      getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
-      createUserWithEmailAndPassword, signInAnonymously, signInWithCustomToken
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import {
-      getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
-      deleteDoc, query, where, onSnapshot, Timestamp
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    window.__fbImports = {
-      initializeApp, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
-      createUserWithEmailAndPassword, signInAnonymously, signInWithCustomToken,
-      getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, deleteDoc,
-      query, where, onSnapshot, Timestamp
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+  
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRHNIkKWuGDpID76Kn8r-6oU2cco6ga_c",
+      authDomain: "labour-hire-app.firebaseapp.com",
+      projectId: "labour-hire-app",
+      storageBucket: "labour-hire-app.appspot.com",
+      messagingSenderId: "348482727709",
+      appId: "1:348482727709:web:3fba6f9fc7f8b4efa6fbf4"
     };
+  
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+  
+    // Make available globally for main.js
+    window.firebase = { app, auth, db };
   </script>
-
-  <!-- App entry -->
   <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
