@@ -1,56 +1,35 @@
-// Main app entry: Firebase init + wiring modules
-const FB = window.__fbImports;
 
-// ---- Firebase config (placeholders or override via window.__firebase_config) ----
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+// Get shared stuff that was set up in the HTML file
+// (auth, db, and all Firebase helper functions)
+const services = window.__services || {};
+const FB = services.FB;    // all Firebase functions (getAuth, getFirestore, etc.)
+const app = services.app;  // the Firebase app
+const auth = services.auth; // authentication service
+const db = services.db;    // database service (Firestore)
 
-const finalFirebaseConfig =
-  firebaseConfig.apiKey === "YOUR_API_KEY"
-    ? JSON.parse(window.__firebase_config || "{}")
-    : firebaseConfig;
-
-window.__app_id = window.__app_id || "labour-hire-app";
-
-// ---- Init Firebase ----
-let app, auth, db;
-try {
-  app  = FB.initializeApp(finalFirebaseConfig);
-  auth = FB.getAuth(app);
-  db   = FB.getFirestore(app);
-} catch (e) {
-  console.warn("Firebase init warning:", e);
-}
-
-// Make available to other modules
-window.__services = { FB, app, auth, db };
-
-// ---- Modules ----
-import { initUI, wireGlobalNav, showMessage } from "./ui.js";
+// Bring in the setup functions from your other files
+import { initUI, showMessage } from "./ui.js";
 import { initAuth } from "./auth.js";
 import { initEmployees } from "./employees.js";
 import { initSites } from "./sites.js";
 import { initTimeClock } from "./timeclock.js";
 
-// Google Translate callback
+// This is the function Google Translate looks for
+// Right now we don't need to do anything special here
 window.googleTranslateElementInit = function () {
-  // If you had special handling, move it here. Using default widget is fine.
+  // Leave empty unless you want custom behaviour
 };
 
-// Boot sequence
-initUI();
-initAuth();
-initEmployees();
-initSites();
-initTimeClock();
+// Start the different parts of the app
+// Each function wires up its own section of the page
+initUI();         // build and prepare the main screen
+initAuth();       // set up login / logout buttons and listeners
+initEmployees();  // set up employee list and forms
+initSites();      // set up work sites list and forms
+initTimeClock();  // set up the time clock feature
 
-// Example: notify if running without Firebase config
-if (!finalFirebaseConfig || !finalFirebaseConfig.apiKey) {
-  showMessage("Site is running without Firebase configuration (demo mode). You can still browse the UI.");
+// If Firebase is not set up properly, tell the user
+if (!auth || !db) {
+  // Very simple message so you know why things might not save
+  showMessage("Firebase is not fully set up. The page may not save or load data.");
 }
