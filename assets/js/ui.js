@@ -1,63 +1,110 @@
-// UI helpers and global navigation
+// ===============================
+// UI helpers and navigation
+// ===============================
+
+// Show ONE view and hide all others
 export function showView(viewId) {
+  // All possible screens in the app
   const views = [
-    'login-view','admin-dashboard-view','supervisor-dashboard-view',
-    'kiosk-view','time-clock-screen'
+    'login-view',
+    'admin-dashboard-view',
+    'supervisor-dashboard-view',
+    'kiosk-view',
+    'time-clock-screen'
   ];
-  views.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+
+  // Hide every screen
+  views.forEach(id =>
+    document.getElementById(id)?.classList.add('hidden')
+  );
+
+  // Show the requested screen
   document.getElementById(viewId)?.classList.remove('hidden');
 
+  // Show top navigation ONLY on admin dashboard
   const mainNav = document.getElementById('main-nav');
-  if (['admin-dashboard-view', 'supervisor-dashboard-view'].includes(viewId)) {
+  if (viewId === 'admin-dashboard-view') {
     mainNav?.classList.remove('hidden');
   } else {
     mainNav?.classList.add('hidden');
   }
 }
 
-export function showModal(id){ document.getElementById(id)?.classList.add('show'); }
-export function hideModal(id){ document.getElementById(id)?.classList.remove('show'); }
-export function showMessage(message){
+// Show a modal (popup)
+export function showModal(id) {
+  document.getElementById(id)?.classList.add('show');
+}
+
+// Hide a modal (popup)
+export function hideModal(id) {
+  document.getElementById(id)?.classList.remove('show');
+}
+
+// Show a message in the modal popup
+export function showMessage(message) {
   const el = document.getElementById('message-text');
   if (el) el.textContent = message;
   showModal('message-modal');
 }
 
-export function initUI(){
-  // Message modal close
-  document.getElementById('close-message-modal-btn')?.addEventListener('click', ()=> hideModal('message-modal'));
+// ===============================
+// Wire up all UI buttons
+// ===============================
+export function initUI() {
 
-  // Kiosk buttons
-  document.getElementById('induction-btn')?.addEventListener('click', ()=> {
-    // In your full app this goes to pre-induction flow
+  // Close message popup
+  document
+    .getElementById('close-message-modal-btn')
+    ?.addEventListener('click', () => hideModal('message-modal'));
+
+  // -------- Kiosk buttons --------
+
+  // Induction button (not wired yet)
+  document.getElementById('induction-btn')?.addEventListener('click', () => {
     showMessage("Induction flow will be wired after Firebase setup.");
   });
-  document.getElementById('time-clock-btn')?.addEventListener('click', ()=> showView('time-clock-screen'));
 
-  // Login routes
-  document.getElementById('kiosk-admin-login-btn')?.addEventListener('click', ()=> {
-    document.getElementById('login-title').textContent = "Admin Login";
-    document.getElementById('login-role').value = "Admin";
-    showView('login-view');
-  });
-  document.getElementById('site-login-btn')?.addEventListener('click', ()=> {
-    document.getElementById('login-title').textContent = "Site Supervisor Login";
-    document.getElementById('login-role').value = "Site Supervisor";
-    showView('login-view');
-  });
-  document.getElementById('back-to-kiosk-from-login-btn')?.addEventListener('click', ()=> showView('kiosk-view'));
-  document.getElementById('back-to-kiosk-from-clock-btn')?.addEventListener('click', ()=> showView('kiosk-view'));
+  // Go to time clock screen
+  document
+    .getElementById('time-clock-btn')
+    ?.addEventListener('click', () => showView('time-clock-screen'));
 
-  // Admin nav
+  // Go to login screen (SINGLE login button)
+  document
+    .getElementById('login-btn')
+    ?.addEventListener('click', () => showView('login-view'));
+
+  // -------- Back buttons --------
+
+  // Back from login to kiosk
+  document
+    .getElementById('back-to-kiosk-from-login-btn')
+    ?.addEventListener('click', () => showView('kiosk-view'));
+
+  // Back from time clock to kiosk
+  document
+    .getElementById('back-to-kiosk-from-clock-btn')
+    ?.addEventListener('click', () => showView('kiosk-view'));
+
+  // -------- Admin dashboard tabs --------
+
+  // Switch between admin sections (Employees / Sites / Timesheets)
   document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', e => {
       const targetId = e.currentTarget.getAttribute('data-target');
-      document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
+
+      // Hide all admin sections
+      document
+        .querySelectorAll('.admin-section')
+        .forEach(s => s.classList.add('hidden'));
+
+      // Show selected section
       document.getElementById(targetId)?.classList.remove('hidden');
     });
   });
 }
 
-export function wireGlobalNav(){
-  // placeholder; wire role-based nav here if needed
+// Placeholder for future role-based navigation
+export function wireGlobalNav() {
+  // We'll use this later when roles are added
 }
