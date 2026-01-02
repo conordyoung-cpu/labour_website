@@ -1,6 +1,10 @@
+// auth.js
+// Handles login, signup, logout, and auth-based routing
+
 import { showView, showMessage } from "./ui.js";
 
-const { auth, db, FB } = window.__services;
+// Firebase services
+const { auth, db, FB } = window.__services || {};
 
 const {
   signInWithEmailAndPassword,
@@ -10,80 +14,72 @@ const {
   doc,
   setDoc,
   getDoc
-} = FB;
+} = FB || {};
 
 // ===============================
-// LOGIN
+// INIT AUTH
 // ===============================
-const loginBtn = document.getElementById("login-submit-btn");
-
-loginBtn?.addEventListener("click", async () => {
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value;
-
-  if (!email || !password) {
-    showMessage("Please enter email and password");
+export function initAuth() {
+  if (!auth || !FB) {
+    console.warn("Auth not available");
     return;
   }
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged will handle routing
-  } catch (err) {
-    showMessage(err.message);
-  }
-});
+  // -------- LOGIN --------
+  document.getElementById("login-submit-btn")?.addEventListener("click", async () => {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
 
-// ===============================
-// SIGN UP
-// ===============================
-const signupBtn = document.getElementById("signup-submit-btn");
+    if (!email || !password) {
+      showMessage("Please enter email and password");
+      return;
+    }
 
-signupBtn?.addEventListener("click", async () => {
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      showMessage(err.message);
+    }
+  });
 
-  if (!email || !password) {
-    showMessage("Please enter email and password");
-    return;
-  }
+  // -------- SIGN UP --------
+  document.getElementById("signup-submit-btn")?.addEventListener("click", async () => {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
 
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    if (!email || !password) {
+      showMessage("Please enter email and password");
+      return;
+    }
 
-    // Create Firestore user profile
-    await setDoc(doc(db, "users", cred.user.uid), {
-      email,
-      role: "worker", // default role
-      createdAt: new Date()
-    });
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-  } catch (err) {
-    showMessage(err.message);
-  }
-});
+      await setDoc(doc(db, "users", cred.user.uid), {
+        email,
+        role: "worker",
+        createdAt: new Date()
+      });
 
-// ===============================
-// LOGOUT
-// ===============================
-document.getElementById("logout-btn")?.addEventListener("click", async () => {
-  await signOut(auth);
-  showView("kiosk-view");
-});
+    } catch (err) {
+      showMessage(err.message);
+    }
+  });
 
-// ===============================
-// AUTH STATE HANDLER
-// ===============================
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
+  // -------- LOGOUT --------
+  document.getElementById("logout-btn")?.addEventListener("click", async () => {
+    await signOut(auth);
     showView("kiosk-view");
-    return;
-  }
+  });
 
-  // Try to get user profile from Firestore
-  const snap = await getDoc(doc(db, "users", user.uid));
+  // -------- AUTH STATE --------
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      showView("kiosk-view");
+      return;
+    }
 
-  // TEMP: route everyone to worker dashboard for now
-  // (we will split admin vs worker next)
-  showView("worker-dashboard-view");
-});
+    // TEMP: everyone goes to worker dashboard
+    showView("worker-dashboard-view");
+  });
+}
