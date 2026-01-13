@@ -36,50 +36,84 @@ export function initAuth() {
     }
 
     try {
+      // Firebase verifies the email/password automatically
       await signInWithEmailAndPassword(auth, email, password);
+      // Success will trigger onAuthStateChanged below
     } catch (err) {
-      showMessage(err.message);
+      showMessage("Login Failed: " + err.message);
     }
   });
 
-  // -------- SIGN UP --------
-  document.getElementById("signup-submit-btn")?.addEventListener("click", async () => {
-    const email = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-password").value;
+  // -------- FINISH SIGN UP (New Flow) --------
+  document.getElementById("finish-signup-btn")?.addEventListener("click", async () => {
+    const name = document.getElementById("signup-name").value.trim();
+    const email = document.getElementById("signup-email").value.trim();
+    const password = document.getElementById("signup-password").value;
 
-    if (!email || !password) {
-      showMessage("Please enter email and password");
+    if (!name || !email || !password) {
+      showMessage("Please fill in all fields (Name, Email, and Password)");
       return;
     }
 
     try {
+      // 1. Create the Auth account
       const cred = await createUserWithEmailAndPassword(auth, email, password);
 
+      // 2. Create the User Profile in Firestore
+      // We use the Auth UID as the document ID so it's easy to find later
       await setDoc(doc(db, "users", cred.user.uid), {
-        email,
-        role: "worker",
+        uid: cred.user.uid,
+        name: name,
+        email: email,
+        role: "worker", // Automatically set to worker
         createdAt: new Date()
       });
 
+      // 3. Navigate straight to worker page
+      showView("worker-dashboard-view");
+      showMessage(`Welcome to the team, ${name}!`);
+
     } catch (err) {
-      showMessage(err.message);
+      showMessage("Signup Error: " + err.message);
     }
   });
 
   // -------- LOGOUT --------
   document.getElementById("logout-btn")?.addEventListener("click", async () => {
-    await signOut(auth);
-    showView("kiosk-view");
+    try {
+      await signOut(auth);
+      showView("kiosk-view");
+    } catch (err) {
+      showMessage("Error logging out");
+    }
   });
 
-  // -------- AUTH STATE --------
+  // -------- AUTH STATE LISTENER --------
+  // This runs automatically whenever someone logs in or out
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       showView("kiosk-view");
       return;
     }
 
-    // TEMP: everyone goes to worker dashboard
-    showView("worker-dashboard-view");
+    try {
+      // Check the database for this user's role
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.role === "admin") {
+          showView("admin-dashboard-view");
+        } else {
+          showView("worker-dashboard-view");
+        }
+      } else {
+        // Fallback if user exists in Auth but not in Database
+        showView("worker-dashboard-view");
+      }
+    } catch (err) {
+      console.error("Error fetching user role:", err);
+      showView("worker-dashboard-view");
+    }
   });
 }

@@ -7,8 +7,9 @@ export function showView(viewId) {
   // All possible screens in the app
   const views = [
     'login-view',
+    'signup-view',            // Added
     'admin-dashboard-view',
-    'supervisor-dashboard-view',
+    'worker-dashboard-view',   // Added
     'kiosk-view',
     'time-clock-screen'
   ];
@@ -19,12 +20,20 @@ export function showView(viewId) {
   );
 
   // Show the requested screen
-  document.getElementById(viewId)?.classList.remove('hidden');
+  const targetView = document.getElementById(viewId);
+  if (targetView) {
+    targetView.classList.remove('hidden');
+  } else {
+    console.error("View not found:", viewId);
+  }
 
-  // Show top navigation ONLY on admin dashboard
+  // Handle Main Nav visibility
+  // Show top navigation on Admin OR Worker dashboards
   const mainNav = document.getElementById('main-nav');
-  if (viewId === 'admin-dashboard-view') {
+  if (viewId === 'admin-dashboard-view' || viewId === 'worker-dashboard-view') {
     mainNav?.classList.remove('hidden');
+    // Show logout button specifically when logged in
+    document.getElementById('logout-btn')?.classList.remove('hidden');
   } else {
     mainNav?.classList.add('hidden');
   }
@@ -59,9 +68,9 @@ export function initUI() {
 
   // -------- Kiosk buttons --------
 
-  // Induction button (not wired yet)
+  // Induction button
   document.getElementById('induction-btn')?.addEventListener('click', () => {
-    showMessage("Induction flow will be wired after Firebase setup.");
+    showMessage("Induction flow will be wired soon.");
   });
 
   // Go to time clock screen
@@ -69,42 +78,57 @@ export function initUI() {
     .getElementById('time-clock-btn')
     ?.addEventListener('click', () => showView('time-clock-screen'));
 
-  // Go to login screen (SINGLE login button)
+  // Go to login screen
   document
     .getElementById('login-btn')
     ?.addEventListener('click', () => showView('login-view'));
 
+  // NEW: Go to signup screen from login page
+  // (Assuming you add a 'go-to-signup' button in your login HTML)
+  document
+    .getElementById('go-to-signup-btn')
+    ?.addEventListener('click', () => showView('signup-view'));
+
   // -------- Back buttons --------
 
-  // Back from login to kiosk
   document
     .getElementById('back-to-kiosk-from-login-btn')
     ?.addEventListener('click', () => showView('kiosk-view'));
 
-  // Back from time clock to kiosk
   document
     .getElementById('back-to-kiosk-from-clock-btn')
     ?.addEventListener('click', () => showView('kiosk-view'));
+    
+  // Back from signup to login
+  document
+    .getElementById('back-to-login-btn')
+    ?.addEventListener('click', () => showView('login-view'));
 
   // -------- Admin dashboard tabs --------
 
-  // Switch between admin sections (Employees / Sites / Timesheets)
   document.querySelectorAll('.admin-nav-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       const targetId = e.currentTarget.getAttribute('data-target');
-
-      // Hide all admin sections
-      document
-        .querySelectorAll('.admin-section')
-        .forEach(s => s.classList.add('hidden'));
-
-      // Show selected section
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
       document.getElementById(targetId)?.classList.remove('hidden');
     });
   });
-}
 
-// Placeholder for future role-based navigation
-export function wireGlobalNav() {
-  // We'll use this later when roles are added
+  // -------- Worker dashboard tabs (NEW) --------
+
+  document.querySelectorAll('.worker-nav-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const targetId = e.currentTarget.getAttribute('data-target');
+      
+      // Hide all worker sections
+      document.querySelectorAll('.worker-section').forEach(s => s.classList.add('hidden'));
+      
+      // Show selected section
+      document.getElementById(targetId)?.classList.remove('hidden');
+      
+      // Optional: Add "active" styling to the clicked button
+      document.querySelectorAll('.worker-nav-btn').forEach(b => b.classList.remove('border-b-4', 'border-white'));
+      btn.classList.add('border-b-4', 'border-white');
+    });
+  });
 }
